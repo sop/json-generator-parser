@@ -1,0 +1,30 @@
+{
+    "name": "sop/json-generator-parser",
+    "description": "Event-driven recursion free SAX-style parser for JSON fed by generator",
+    "homepage": "https://github.com/sop/json-generator-parser",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "json",
+        "generator"
+    ],
+    "authors": [
+        {
+            "name": "Joni Kollani",
+            "email": "joni.kollani@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11",
+        "friendsofphp/php-cs-fixer": "3.91.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sop\\JGP\\": "lib/"
+        }
+    }
+}
