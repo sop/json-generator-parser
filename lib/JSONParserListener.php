@@ -7,39 +7,44 @@ namespace Sop\JGP;
 /**
  * JSON generator parser listener.
  */
-interface JSONParserListener
+abstract class JSONParserListener
 {
     /**
      * Called when JSON document starts.
      */
-    public function startDocument(): void;
+    public function startDocument(): void {}
+
+    /**
+     * Called when JSON documents ends.
+     */
+    public function endDocument(): void {}
 
     /**
      * Called when new object begins, ie. `{` token.
      */
-    public function startObject(): void;
+    public function startObject(): void {}
 
     /**
      * Called when object ends, ie. `}` token.
      */
-    public function endObject(): void;
+    public function endObject(): void {}
 
     /**
      * Called when new array begins, ie `[` token.
      */
-    public function startArray(): void;
+    public function startArray(): void {}
 
     /**
      * Called when array ends. ie. `]` token.
      */
-    public function endArray(): void;
+    public function endArray(): void {}
 
     /**
-     * Called when object key is encountered.
+     * Called when object key (member name) is encountered.
      *
-     * @param string $key Member name
+     * @param string $name Member name
      */
-    public function key(string $key): void;
+    public function name(string $name): void {}
 
     /**
      * Called when value is encountered.
@@ -50,5 +55,5 @@ interface JSONParserListener
      *  number          int|float|string (string for numbers larger than PHP_INT_MAX)
      *  string          string
      */
-    public function value(mixed $value): void;
+    public function value(mixed $value): void {}
 }

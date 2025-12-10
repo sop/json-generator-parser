@@ -7,13 +7,13 @@ namespace Sop\JGP\Listener;
 use Sop\JGP\JSONParserListener;
 
 /**
- * JSON generator parser listener that captures values and structural keys.
+ * JSON generator parser listener that calls a function with values and structural keys.
  *
  * Callback receives two arguments:
  *  array $keys  List of keys leading to the value
  *  mixed $value Value
  */
-class SimpleJSONListener implements JSONParserListener
+class CallbackJSONListener extends JSONParserListener
 {
     private const TYPE_OBJECT = 1;
 
@@ -67,9 +67,9 @@ class SimpleJSONListener implements JSONParserListener
         $this->adjustKey();
     }
 
-    public function key(string $key): void
+    public function name(string $name): void
     {
-        $this->keys[] = $key;
+        $this->keys[] = $name;
     }
 
     public function value(mixed $value): void

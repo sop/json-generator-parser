@@ -65,7 +65,7 @@ class JSONGeneratorParser
      *
      * @param JSONParserListener $listener Listener
      * @param bool               $strict   Enforce strict parsing rules
-     * @param int                $maxDepth Maximum nested structure depth
+     * @param int                $maxDepth Maximum nested structure depth, 0 to disable
      */
     public function __construct(
         private JSONParserListener $listener,
@@ -126,6 +126,7 @@ class JSONGeneratorParser
                 ));
             }
         }
+        $this->listener->endDocument();
     }
 
     /**
@@ -166,13 +167,12 @@ class JSONGeneratorParser
         $value_next = true;
         do {
             $this->_parseWs($chars);
-            if ($value_next) {
-                $value_next = $this->_parseValue($chars);
-            } else {
-                $value_next = $this->_parseCommaOrEnd($chars);
-                if (null === $value_next) {
-                    break;
-                }
+            $value_next = match ($value_next) {
+                true => $this->_parseValue($chars),
+                false => $this->_parseCommaOrEnd($chars),
+            };
+            if (null === $value_next) {
+                break;
             }
             // no open structures remaining
             if (empty($this->structures)) {
@@ -182,12 +182,23 @@ class JSONGeneratorParser
             }
         } while ($chars->valid());
         // still expecting a value
-        if ($value_next) {
+        if ($this->strict && $value_next) {
             $this->_raiseError('Unexpected end of document.');
         }
-        // if there's unclosed structures in strict mode
-        if ($this->strict && !empty($this->structures)) {
-            $this->_raiseError('Unexpected end of document.');
+        // if there's unclosed structures
+        if (!empty($this->structures)) {
+            // not permitted in strict mode
+            if ($this->strict) {
+                $this->_raiseError('Unexpected end of document.');
+            }
+            // unwind structure stack
+            for ($i = count($this->structures); $i > 0; --$i) {
+                if (self::STRUCTURE_ARRAY === array_pop($this->structures)) {
+                    $this->listener->endArray();
+                } else {
+                    $this->listener->endObject();
+                }
+            }
         }
     }
 
@@ -227,9 +238,9 @@ class JSONGeneratorParser
     /**
      * Parse value or structure.
      *
-     * @return bool True if next token must be a value
+     * @return null|bool True if next token must be a value, null to stop parsing
      */
-    private function _parseValue(\Generator $chars): bool
+    private function _parseValue(\Generator $chars): ?bool
     {
         switch ($chars->current()) {
             case '{':
@@ -253,11 +264,16 @@ class JSONGeneratorParser
                 $this->listener->value(null);
                 return false;
             case null:
-                $this->_raiseError('Unexpected end of document');
-                // no break
+                if ($this->strict) {
+                    $this->_raiseError('Unexpected end of document');
+                }
+                return null;
             default:
                 $value = $this->_maybeNumber($chars);
                 if (null === $value) {
+                    if (!$this->strict) {
+                        return null;
+                    }
                     $this->_raiseError(sprintf(
                         "Expected JSON value, got '%s'",
                         $chars->current()
@@ -273,9 +289,9 @@ class JSONGeneratorParser
      *
      * @see https://datatracker.ietf.org/doc/html/rfc7159#section-4
      *
-     * @return bool True if next token must be a value
+     * @return null|bool True if next token must be a value, null to stop parsing
      */
-    private function _parseObjectStart(\Generator $chars): bool
+    private function _parseObjectStart(\Generator $chars): ?bool
     {
         $this->_expectChar('{', $chars);
         $this->listener->startObject();
@@ -287,6 +303,10 @@ class JSONGeneratorParser
             $this->_parseObjectEnd($chars);
             return false;
         }
+        // permit empty unclosed object on non-strict mode
+        if (!$this->strict && '"' !== $chars->current()) {
+            return null;
+        }
         $this->_parseObjectNameColon($chars);
         return true;
     }
@@ -296,8 +316,8 @@ class JSONGeneratorParser
      */
     private function _parseObjectNameColon(\Generator $chars): void
     {
-        $key = $this->_parseString($chars);
-        $this->listener->key($key);
+        $name = $this->_parseString($chars);
+        $this->listener->name($name);
         $this->_parseWs($chars);
         $this->_expectChar(':', $chars);
     }
@@ -519,7 +539,7 @@ class JSONGeneratorParser
     private function _incDepth(): void
     {
         ++$this->depth;
-        if ($this->depth > $this->maxDepth) {
+        if ($this->maxDepth && $this->depth > $this->maxDepth) {
             $this->_raiseError("Maximum nesting depth {$this->maxDepth} reached");
         }
     }
