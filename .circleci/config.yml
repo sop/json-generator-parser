@@ -39,9 +39,9 @@ jobs:
       - run:
           command: |
             vendor/bin/phpunit --coverage-clover build/logs/clover.xml
-            vendor/bin/php-coveralls -x build/logs/clover.xml
           environment:
             XDEBUG_MODE: coverage
+      - run: vendor/bin/php-coveralls -x build/logs/clover.xml -v
 
 workflows:
   default:
