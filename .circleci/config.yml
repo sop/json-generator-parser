@@ -29,8 +29,8 @@ jobs:
     steps:
       - run:
           command: |
-            sudo apt update
-            sudo apt install php-xdebug
+            sudo -E install-php-extensions xdebug
+            sudo docker-php-ext-enable xdebug
       - checkout
       - run:
           command: |
