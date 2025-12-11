@@ -11,7 +11,7 @@ jobs:
     steps:
       - checkout
       - run: composer install -n
-      - run: vendor/bin/phpunit --log-junit build/results/junit.xml
+      - run: vendor/bin/phpunit --no-coverage --log-junit build/results/junit.xml
       - store_test_results:
           path: build/results
 
