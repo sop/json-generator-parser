@@ -17,11 +17,19 @@ jobs:
             ./vendor/bin/phpunit --log-junit ~/results/junit.xml
       - store_test_results:
           path: ~/results
+  cs:
+    docker:
+      - image: cimg/php:8.5
+    steps:
+      - checkout
+      - run: composer install -n
+      - run: vendor/bin/php-cs-fixer check -n --show-progress=none
 
 workflows:
-  test:
+  default:
     jobs:
       - test:
           matrix:
             parameters:
               php: ["8.2", "8.3", "8.4", "8.5"]
+      - cs
