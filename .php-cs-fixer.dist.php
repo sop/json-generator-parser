@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 use PhpCsFixer\Config;
 use PhpCsFixer\Finder;
+use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 
 $finder = Finder::create()
     ->in(__DIR__);
@@ -41,4 +42,5 @@ return $config->setRules([
     'phpdoc_to_comment' => false,
     'phpdoc_var_without_name' => false,
 ])
-    ->setFinder($finder);
+    ->setFinder($finder)
+    ->setParallelConfig(ParallelConfigFactory::detect());

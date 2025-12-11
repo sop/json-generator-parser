@@ -17,13 +17,29 @@ jobs:
             ./vendor/bin/phpunit --log-junit ~/results/junit.xml
       - store_test_results:
           path: ~/results
-  cs:
+
+  coding-style:
     docker:
       - image: cimg/php:8.5
     steps:
       - checkout
       - run: composer install -n
       - run: vendor/bin/php-cs-fixer check -n --show-progress=none
+
+  coveralls:
+    docker:
+      - image: cimg/php:8.5
+    steps:
+      - checkout
+      - run:
+          command: |
+            composer install -n
+            composer require php-coveralls/php-coveralls
+      - run: sed -i 's/^;//' ~/.phpenv/versions/$(phpenv global)/etc/conf.d/xdebug.ini
+      - run:
+          command: |
+            mkdir -p ~/build/logs
+            ./vendor/bin/phpunit --coverage-clover ~/build/logs/clover.xml
 
 workflows:
   default:
@@ -32,4 +48,5 @@ workflows:
           matrix:
             parameters:
               php: ["8.2", "8.3", "8.4", "8.5"]
-      - cs
+      - coding-style
+      - coveralls
