@@ -11,7 +11,12 @@ jobs:
     steps:
       - checkout
       - run: composer install -n
-      - run: ./vendor/bin/phpunit
+      - run:
+          command: |
+            mkdir -p ~/results
+            ./vendor/bin/phpunit --log-junit ~/results/junit.xml
+      - store_test_results:
+          path: ~/results
 
 workflows:
   test:
