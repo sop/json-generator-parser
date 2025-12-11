@@ -17,4 +17,4 @@ workflows:
   test:
     jobs:
       - test:
-          php: 8.2
+          php: "8.2"
