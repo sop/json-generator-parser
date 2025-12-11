@@ -1,0 +1,20 @@
+# See: https://circleci.com/docs/reference/configuration-reference/
+version: 2.1
+
+jobs:
+  test:
+    parameters:
+      php:
+        type: string
+    docker:
+      - image: cimg/php:<< parameters.php >>
+    steps:
+      - checkout
+      - run: composer install -n
+      - run: ./vendor/bin/phpunit
+
+workflows:
+  test:
+    jobs:
+      - test:
+          php: 8.2
