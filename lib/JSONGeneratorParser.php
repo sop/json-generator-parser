@@ -5,7 +5,7 @@ declare(strict_types = 1);
 namespace Sop\JGP;
 
 /**
- * Event-driven recursion free SAX-style parser for JSON fed by generator.
+ * Event-driven recursion free SAX-style JSON parser fed by generator.
  *
  * Only UTF-8 character encoding is supported.
  *

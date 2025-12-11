@@ -10,8 +10,8 @@ A PHP library for event-driven recursion free SAX-style JSON parser fed by gener
 
 Provide a JSON parser with lenient rules that accepts input from an LLM stream.
 
-There are cases when you need a structured LLM response, but want to display
-output as soon as there are token stream available.
+There are cases where you need a structured LLM response, but want to display
+output to the user as soon as there are token stream available.
 This library provides a listener interface, that is called as JSON is parsed.
 
 As LLM's may generate a bit wonky JSON, this library has a non-strict option
@@ -21,6 +21,13 @@ of the response.
 ## Requirements
 
 -   PHP >=8.2
+
+## Installation
+
+This library is available on
+[Packagist](https://packagist.org/packages/sop/json-generator-parser).
+
+    composer require sop/json-generator-parser
 
 ## License
 
