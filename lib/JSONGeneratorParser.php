@@ -82,8 +82,12 @@ class JSONGeneratorParser
      * @param \Generator $generator        Generator that yields string chunks
      * @param bool       $first_structured Whether to seek first strucuted element
      *                                     and ignore surrounding characters
+     *
+     * @return bool False if parsing would have failed in strict mode
+     *
+     * @throws JSONParserException
      */
-    public function parse(\Generator $generator, bool $first_structured = false): void
+    public function parse(\Generator $generator, bool $first_structured = false): bool
     {
         $this->lineNum = 1;
         $this->charNum = 1;
@@ -117,7 +121,7 @@ class JSONGeneratorParser
             }
         }
         $this->listener->startDocument();
-        $this->_parseDocument($chars);
+        $ret = $this->_parseDocument($chars);
         if (!$first_structured) {
             if ($chars->valid()) {
                 $this->_raiseError(sprintf(
@@ -127,6 +131,7 @@ class JSONGeneratorParser
             }
         }
         $this->listener->endDocument();
+        return $ret;
     }
 
     /**
@@ -160,9 +165,12 @@ class JSONGeneratorParser
      * Parse JSON document.
      *
      * @see https://datatracker.ietf.org/doc/html/rfc7159#section-2
+     *
+     * @return bool False if parsing would have failed in strict mode
      */
-    private function _parseDocument(\Generator $chars): void
+    private function _parseDocument(\Generator $chars): bool
     {
+        $ret = true;
         // whether next token must be a value or a structure
         $value_next = true;
         do {
@@ -171,22 +179,28 @@ class JSONGeneratorParser
                 true => $this->_parseValue($chars),
                 false => $this->_parseCommaOrEnd($chars),
             };
+            // if parsing must be stopped due to non-strict error
             if (null === $value_next) {
+                $ret = false;
                 break;
             }
             // no open structures remaining
             if (empty($this->structures)) {
                 // whitespace is permitted after a value
                 $this->_parseWs($chars);
-                return;
+                return $ret;
             }
         } while ($chars->valid());
         // still expecting a value
-        if ($this->strict && $value_next) {
-            $this->_raiseError('Unexpected end of document.');
+        if ($value_next) {
+            $ret = false;
+            if ($this->strict) {
+                $this->_raiseError('Unexpected end of document.');
+            }
         }
         // if there's unclosed structures
         if (!empty($this->structures)) {
+            $ret = false;
             // not permitted in strict mode
             if ($this->strict) {
                 $this->_raiseError('Unexpected end of document.');
@@ -200,6 +214,7 @@ class JSONGeneratorParser
                 }
             }
         }
+        return $ret;
     }
 
     /**
@@ -551,7 +566,9 @@ class JSONGeneratorParser
      */
     private function _raiseError(string $message): never
     {
-        throw new \RuntimeException(
-            "{$message} (line {$this->lineNum}, col {$this->charNum})");
+        throw new JSONParserException(
+            "{$message} (line {$this->lineNum}, column {$this->charNum})",
+            $this->lineNum, $this->charNum
+        );
     }
 }
