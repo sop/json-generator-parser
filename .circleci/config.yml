@@ -11,12 +11,9 @@ jobs:
     steps:
       - checkout
       - run: composer install -n
-      - run:
-          command: |
-            mkdir -p ~/results
-            vendor/bin/phpunit --log-junit ~/results/junit.xml
+      - run: vendor/bin/phpunit --log-junit build/results/junit.xml
       - store_test_results:
-          path: ~/results
+          path: build/results
 
   coding-style:
     docker:
@@ -41,9 +38,8 @@ jobs:
             composer require php-coveralls/php-coveralls
       - run:
           command: |
-            mkdir -p ~/build/logs
-            vendor/bin/phpunit --coverage-clover ~/build/logs/clover.xml
-            vendor/bin/php-coveralls -x ~/build/logs/clover.xml
+            vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+            vendor/bin/php-coveralls -x build/logs/clover.xml
           environment:
             XDEBUG_MODE: coverage
 
