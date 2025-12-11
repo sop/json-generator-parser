@@ -17,4 +17,6 @@ workflows:
   test:
     jobs:
       - test:
-          php: "8.2"
+          matrix:
+            parameters:
+              php: ["8.2", "8.3", "8.4", "8.5"]
